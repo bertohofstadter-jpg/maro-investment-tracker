@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peso — Personal Finance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg: #0c0c0e;
+  --bg2: #111114;
+  --bg3: #18181d;
+  --bg4: #1e1e25;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0ede8;
+  --text2: #9d9a95;
+  --text3: #5a5855;
+  --accent: #d4a853;
+  --accent2: #b8914a;
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.08);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.08);
+  --blue: #60a5fa;
+  --blue-bg: rgba(96,165,250,0.08);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.08);
+  --teal: #2dd4bf;
+  --teal-bg: rgba(45,212,191,0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font: 'DM Sans', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+.logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.5px; }
+.nav { padding: 12px 10px; flex: 1; }
+.nav-section { margin-bottom: 20px; }
+.nav-label { font-size: 10px; letter-spacing: 1.2px; color: var(--text3); padding: 0 10px; margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item i { width: 16px; font-size: 13px; opacity: 0.7; }
+.nav-item:hover { background: var(--bg4); color: var(--text); }
+.nav-item.active { background: var(--bg4); color: var(--accent); font-weight: 500; }
+.nav-item.active i { opacity: 1; }
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+}
+.sidebar-footer span { color: var(--accent); }
+
+/* Main */
+.main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Topbar */
+.topbar {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(12,12,14,0.8);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.page-title { font-family: var(--font-display); font-size: 24px; color: var(--text); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.refresh-btn {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; font-family: var(--font);
+  transition: all 0.15s;
+}
+.refresh-btn:hover { border-color: var(--border2); color: var(--text); }
+.rate-pill {
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--text2);
+}
+.rate-pill b { color: var(--accent); }
+
+/* Content */
+.content { padding: 28px 32px; flex: 1; }
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Metrics strip */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.metric {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  transition: border-color 0.15s;
+}
+.metric:hover { border-color: var(--border2); }
+.metric .label { font-size: 11px; color: var(--text3); letter-spacing: 0.3px; margin-bottom: 8px; }
+.metric .value { font-family: var(--font-display); font-size: 22px; color: var(--text); }
+.metric .value.pos { color: var(--green); }
+.metric .value.neg { color: var(--red); }
+.metric .value.gold { color: var(--accent); }
+.metric .change { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* Cards */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.card-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title i { color: var(--text3); font-size: 12px; }
+.add-btn {
+  background: var(--bg4); border: 1px solid var(--border2); color: var(--text2);
+  padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px; font-family: var(--font);
+  transition: all 0.15s;
+}
+.add-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); color: var(--accent); }
+.card-body { padding: 0; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 20px;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+thead th:last-child { text-align: right; }
+tbody td {
+  padding: 13px 20px;
+  font-size: 13px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tbody td:last-child { text-align: right; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { transition: background 0.1s; }
+tbody tr:hover { background: var(--bg3); }
+.ticker { font-weight: 600; color: var(--text); letter-spacing: 0.3px; }
+.co-name { font-size: 11px; color: var(--text3); }
+.pos { color: var(--green) !important; }
+.neg { color: var(--red) !important; }
+.neutral { color: var(--text2); }
+.del-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  padding: 4px 6px; font-size: 12px; border-radius: 4px;
+  transition: all 0.15s;
+}
+.del-btn:hover { background: var(--red-bg); color: var(--red); }
+.edit-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  padding: 4px 6px; font-size: 12px; border-radius: 4px;
+  transition: all 0.15s;
+}
+.edit-btn:hover { background: var(--blue-bg); color: var(--blue); }
+
+/* Badges */
+.badge {
+  font-size: 10px; font-weight: 500; padding: 3px 8px;
+  border-radius: 20px; letter-spacing: 0.3px; display: inline-block;
+}
+.b-green { background: var(--green-bg); color: var(--green); }
+.b-blue { background: var(--blue-bg); color: var(--blue); }
+.b-amber { background: var(--amber-bg); color: var(--amber); }
+.b-red { background: var(--red-bg); color: var(--red); }
+.b-teal { background: var(--teal-bg); color: var(--teal); }
+.b-purple { background: rgba(167,139,250,0.1); color: #a78bfa; }
+
+/* Empty state */
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+}
+.empty i { font-size: 28px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+/* MP2 footer */
+.card-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 28px;
+  background: var(--bg3);
+}
+.kv .k { font-size: 11px; color: var(--text3); }
+.kv .v { font-size: 16px; font-weight: 500; color: var(--text); margin-top: 2px; }
+
+/* Debt cards */
+.debt-item {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.debt-item:last-child { border-bottom: none; }
+.debt-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.debt-name { font-weight: 500; color: var(--text); font-size: 14px; }
+.debt-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.debt-amount { text-align: right; }
+.debt-remaining { font-family: var(--font-display); font-size: 20px; color: var(--red); }
+.debt-total { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.progress-bar { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #22c55e); border-radius: 2px; transition: width 0.5s ease; }
+.debt-progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+/* AI Command Bar */
+.ai-bar {
+  position: fixed;
+  bottom: 0; left: 220px; right: 0;
+  padding: 16px 32px 20px;
+  background: linear-gradient(transparent, var(--bg) 30%);
+  z-index: 30;
+}
+.ai-inner {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 4px 4px 4px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  transition: border-color 0.2s;
+}
+.ai-inner:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(212,168,83,0.1), 0 8px 32px rgba(0,0,0,0.4); }
+.ai-icon { color: var(--accent); font-size: 14px; flex-shrink: 0; }
+#ai-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-family: var(--font); font-size: 14px;
+  padding: 10px 0;
+}
+#ai-input::placeholder { color: var(--text3); }
+.ai-send {
+  background: var(--accent); border: none; color: var(--bg);
+  padding: 10px 18px; border-radius: 12px; font-family: var(--font);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.ai-send:hover { background: var(--accent2); transform: scale(1.02); }
+.ai-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.ai-status {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 6px;
+  min-height: 16px;
+  transition: all 0.2s;
+}
+.ai-status.thinking { color: var(--accent); }
+.ai-status.success { color: var(--green); }
+.ai-status.error { color: var(--red); }
+.ai-examples {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.ai-chip {
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; color: var(--text3);
+  cursor: pointer; transition: all 0.15s;
+}
+.ai-chip:hover { border-color: var(--border2); color: var(--text2); }
+
+/* Smart suggestions */
+.suggest-wrap { position: relative; }
+.suggest-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  z-index: 120;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.suggest-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.suggest-item:last-child { border-bottom: none; }
+.suggest-item:hover, .suggest-item.active { background: var(--bg3); color: var(--text); }
+.suggest-item small { display:block; color: var(--text3); font-size: 11px; margin-top: 2px; }
+.smart-hint { font-size: 11px; color: var(--text3); margin-top: 8px; }
+.smart-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text3); font-size: 11px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; animation: fadeIn 0.15s ease;
+}
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 24px;
+  width: 380px; max-width: 95vw;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.modal h3 { font-family: var(--font-display); font-size: 20px; color: var(--text); margin-bottom: 18px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 5px; letter-spacing: 0.3px; }
+.form-row input, .form-row select {
+  width: 100%; padding: 10px 12px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: var(--font); font-size: 14px; outline: none;
+  transition: border-color 0.15s;
+}
+.form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+.form-row select option { background: var(--bg3); }
+.form-row input::placeholder { color: var(--text3); }
+.form-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.btn-cancel {
+  padding: 9px 18px; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text2); font-family: var(--font); font-size: 13px; cursor: pointer;
+}
+.btn-save {
+  padding: 9px 20px; background: var(--accent); border: none;
+  border-radius: var(--radius-sm); color: var(--bg); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-save:hover { background: var(--accent2); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
+  background: var(--bg2); border: 1px solid var(--border2);
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; color: var(--text);
+  z-index: 200; opacity: 0; transition: opacity 0.25s;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.toast.show { opacity: 1; }
+.toast.ok::before { content: '✓  '; color: var(--green); }
+.toast.err::before { content: '✕  '; color: var(--red); }
+
+/* API Key setup */
+.setup-banner {
+  background: linear-gradient(135deg, rgba(212,168,83,0.08), rgba(212,168,83,0.03));
+  border: 1px solid rgba(212,168,83,0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.setup-banner i { color: var(--accent); font-size: 18px; }
+.setup-banner p { font-size: 13px; color: var(--text2); flex: 1; }
+.setup-banner p b { color: var(--accent); }
+.setup-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(212,168,83,0.3); font-size: 13px; cursor: pointer; background: none; border-left: none; border-top: none; border-right: none; font-family: var(--font); }
+
+/* Content spacing for AI bar */
+.content { padding-bottom: 120px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { width: 0; overflow: hidden; }
+  .main { margin-left: 0; }
+  .ai-bar { left: 0; padding: 12px 16px 16px; }
+  .content { padding: 16px; padding-bottom: 120px; }
+  .topbar { padding: 14px 16px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .metric:first-child { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Peso</div>
+      <div class="logo-sub">PERSONAL FINANCE TRACKER</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">
+        <div class="nav-label">OVERVIEW</div>
+        <button class="nav-item active" onclick="showSection('dashboard')">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">INVESTMENTS</div>
+        <button class="nav-item" onclick="showSection('pse')">
+          <i class="fa-solid fa-chart-line"></i> PSE Stocks
+        </button>
+        <button class="nav-item" onclick="showSection('us')">
+          <i class="fa-solid fa-building-columns"></i> GoTrade US
+        </button>
+        <button class="nav-item" onclick="showSection('mp2')">
+          <i class="fa-solid fa-house"></i> Pag-IBIG MP2
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">MONEY</div>
+        <button class="nav-item" onclick="showSection('savings')">
+          <i class="fa-solid fa-wallet"></i> Savings
+        </button>
+        <button class="nav-item" onclick="showSection('debts')">
+          <i class="fa-solid fa-credit-card"></i> Debts
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">SETTINGS</div>
+        <button class="nav-item" onclick="showSection('settings')">
+          <i class="fa-solid fa-gear"></i> Settings & API
+        </button>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div>Data stored <span>locally</span></div>
+      <div style="margin-top:4px;" id="last-sync">Never synced</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="rate-pill" id="usd-rate-pill">USD/PHP: <b>—</b></div>
+        <button class="refresh-btn" onclick="fetchRates()">
+          <i class="fa-solid fa-rotate"></i> Refresh Rates
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="sec-dashboard" class="section active">
+        <div class="metrics" id="metrics-strip">
+          <div class="metric">
+            <div class="label">NET WORTH</div>
+            <div class="value gold" id="m-net">₱0</div>
+            <div class="change" id="m-net-sub">Assets minus debts</div>
+          </div>
+          <div class="metric">
+            <div class="label">TOTAL ASSETS</div>
+            <div class="value" id="m-assets">₱0</div>
+          </div>
+          <div class="metric">
+            <div class="label">INVESTMENTS</div>
+            <div class="value" id="m-invest">₱0</div>
+          </div>
+          <div class="metric">
+            <div class="label">SAVINGS</div>
+            <div class="value" id="m-savings">₱0</div>
+          </div>
+          <div class="metric">
+            <div class="label">OUTSTANDING DEBT</div>
+            <div class="value neg" id="m-debt">₱0</div>
+          </div>
+        </div>
+
+        <div id="api-key-banner" class="setup-banner" style="display:none;">
+          <i class="fa-solid fa-robot"></i>
+          <p>Smart logging is built in — no API key needed. Type what you did and it will try to parse and log it automatically.</p>
+          <button class="setup-link" onclick="showSection('settings')">Learn more →</button>
+        </div>
+
+        <!-- Summary cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="fa-solid fa-chart-line"></i> Investment Breakdown</div>
+            </div>
+            <div class="card-body" id="dash-invest-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="fa-solid fa-list"></i> Recent Activity</div>
+            </div>
+            <div class="card-body" id="dash-activity"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PSE STOCKS -->
+      <div id="sec-pse" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-chart-line"></i> PSE Stocks</div>
+            <button class="add-btn" onclick="openModal('pse')"><i class="fa-solid fa-plus"></i> Add Holding</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>STOCK</th><th>SHARES</th><th>AVG COST</th><th>CUR PRICE</th><th>VALUE</th><th>P&L</th><th></th></tr></thead>
+              <tbody id="pse-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- US STOCKS -->
+      <div id="sec-us" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-building-columns"></i> GoTrade US Stocks</div>
+            <button class="add-btn" onclick="openModal('us')"><i class="fa-solid fa-plus"></i> Add Holding</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>TICKER</th><th>SHARES</th><th>AVG COST (USD)</th><th>CUR PRICE</th><th>VALUE (₱)</th><th>P&L (₱)</th><th></th></tr></thead>
+              <tbody id="us-body"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 20px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);" id="usd-rate-note">USD/PHP rate: loading…</div>
+        </div>
+      </div>
+
+      <!-- MP2 -->
+      <div id="sec-mp2" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-house"></i> Pag-IBIG MP2</div>
+            <button class="add-btn" onclick="openModal('mp2')"><i class="fa-solid fa-plus"></i> Log Entry</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>DATE</th><th>TYPE</th><th>AMOUNT</th><th>NOTES</th><th></th></tr></thead>
+              <tbody id="mp2-body"></tbody>
+            </table>
+          </div>
+          <div class="card-footer" id="mp2-footer">
+            <div class="kv"><div class="k">Total Contributions</div><div class="v" id="mp2-contrib">₱0</div></div>
+            <div class="kv"><div class="k">Dividends Received</div><div class="v pos" id="mp2-div">₱0</div></div>
+            <div class="kv"><div class="k">Balance</div><div class="v gold" id="mp2-bal">₱0</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVINGS -->
+      <div id="sec-savings" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-wallet"></i> Savings Accounts</div>
+            <button class="add-btn" onclick="openModal('savings')"><i class="fa-solid fa-plus"></i> Add Account</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>ACCOUNT</th><th>BANK / CHANNEL</th><th>TYPE</th><th>BALANCE</th><th>UPDATED</th><th></th></tr></thead>
+              <tbody id="savings-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Transaction Log</div>
+            <button class="add-btn" onclick="openModal('txn')"><i class="fa-solid fa-plus"></i> Log Transaction</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>DATE</th><th>ACCOUNT</th><th>TYPE</th><th>AMOUNT</th><th>NOTE</th><th></th></tr></thead>
+              <tbody id="txn-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEBTS -->
+      <div id="sec-debts" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-credit-card"></i> Debts & Liabilities</div>
+            <button class="add-btn" onclick="openModal('debt')"><i class="fa-solid fa-plus"></i> Add Debt</button>
+          </div>
+          <div class="card-body" id="debt-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-receipt"></i> Payment History</div>
+            <button class="add-btn" onclick="openModal('payment')"><i class="fa-solid fa-plus"></i> Log Payment</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>DATE</th><th>DEBT</th><th>AMOUNT PAID</th><th>NOTE</th><th></th></tr></thead>
+              <tbody id="payment-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="sec-settings" class="section">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-robot"></i> Smart Logging</div>
+          </div>
+          <div style="padding:24px;">
+            <p style="color:var(--text2);font-size:13px;margin-bottom:16px;">Smart logging is built in locally, so you can use the command bar without any API key. Your data still stays in your browser.</p>
+            <div class="form-row">
+              <label>OPTIONAL LEGACY KEY</label>
+              <input type="password" id="api-key-input" placeholder="sk-ant-api..." style="font-family:monospace;">
+            </div>
+            <div style="display:flex;gap:10px;margin-top:4px;">
+              <button class="btn-save" onclick="saveApiKey()">Save Key</button>
+              <button class="btn-cancel" onclick="clearApiKey()">Clear Key</button>
+            </div>
+            <p style="font-size:11px;color:var(--text3);margin-top:12px;">The tracker now uses local parsing, so nothing extra is required.</p>
+            <div id="api-key-status" style="margin-top:12px;font-size:12px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="fa-solid fa-database"></i> Data Management</div>
+          </div>
+          <div style="padding:24px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-save" onclick="exportData()"><i class="fa-solid fa-download"></i> Export JSON</button>
+            <button class="btn-cancel" onclick="importData()"><i class="fa-solid fa-upload"></i> Import JSON</button>
+            <button onclick="if(confirm('Clear ALL data? This cannot be undone.'))clearAllData()" style="padding:9px 18px;background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);color:var(--red);font-family:var(--font);font-size:13px;cursor:pointer;">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<!-- AI Bar -->
+<div class="ai-bar">
+  <div class="ai-status" id="ai-status">AI command bar — type what you did and it logs automatically</div>
+  <div class="ai-examples" id="ai-examples">
+    <div class="ai-chip" onclick="fillPrompt(this)">bought 10 BPI at ₱98</div>
+    <div class="ai-chip" onclick="fillPrompt(this)">deposited 5000 to Metrobank</div>
+    <div class="ai-chip" onclick="fillPrompt(this)">MP2 contribution 1000 today</div>
+    <div class="ai-chip" onclick="fillPrompt(this)">paid 3000 to credit card debt</div>
+    <div class="ai-chip" onclick="fillPrompt(this)">bought 0.5 shares AAPL at $193</div>
+  </div>
+  <div class="ai-inner">
+    <i class="fa-solid fa-sparkles ai-icon"></i>
+    <input id="ai-input" placeholder="e.g. bought 100 SM at ₱920, deposited 10000 to Maribank, MP2 contribution 2000…" />
+    <button class="ai-send" onclick="sendAI()" id="ai-btn">
+      <i class="fa-solid fa-arrow-up"></i> Log it
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="modal-root"></div>
+
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+<datalist id="ticker-datalist"></datalist>
+
+<script>
+// ─── STATE ───
+let data = { pse:[], us:[], mp2:[], savings:[], txns:[], debts:[], payments:[], activity:[] };
+let usdphp = 56.5;
+const STORAGE_KEY = 'peso_tracker_v2';
+const API_KEY_STORAGE = 'peso_anthropic_key'; // retained for compatibility; no longer required.
+const SMART_REFRESH_MS = 15 * 60 * 1000;
+
+const LOCAL_TICKERS = {
+  // PSE
+  BPI: { name: 'Bank of the Philippine Islands', market: 'PSE', currency: 'PHP', aliases: ['bank of the philippine islands'] },
+  BDO: { name: 'BDO Unibank', market: 'PSE', currency: 'PHP', aliases: ['bdo unibank'] },
+  AC: { name: 'Ayala Corporation', market: 'PSE', currency: 'PHP', aliases: ['ayala'] },
+  ALI: { name: 'Ayala Land, Inc.', market: 'PSE', currency: 'PHP', aliases: ['ayala land'] },
+  SMPH: { name: 'SM Prime Holdings, Inc.', market: 'PSE', currency: 'PHP', aliases: ['sm prime'] },
+  SM: { name: 'SM Investments Corporation', market: 'PSE', currency: 'PHP', aliases: ['sm investments'] },
+  JFC: { name: 'Jollibee Foods Corporation', market: 'PSE', currency: 'PHP', aliases: ['jollibee'] },
+  MONDE: { name: 'Monde Nissin Corporation', market: 'PSE', currency: 'PHP', aliases: ['monde'] },
+  TEL: { name: 'PLDT Inc.', market: 'PSE', currency: 'PHP', aliases: ['pldt'] },
+  MBT: { name: 'Metropolitan Bank & Trust Co.', market: 'PSE', currency: 'PHP', aliases: ['metrobank'] },
+  CEB: { name: 'Cebu Air, Inc.', market: 'PSE', currency: 'PHP', aliases: ['cebu pacific'] },
+  SCC: { name: 'Semirara Mining and Power Corporation', market: 'PSE', currency: 'PHP', aliases: ['semirara'] },
+  DMC: { name: 'DMCI Holdings, Inc.', market: 'PSE', currency: 'PHP', aliases: ['dmci'] },
+  GLO: { name: 'Globe Telecom, Inc.', market: 'PSE', currency: 'PHP', aliases: ['globe'] },
+  URC: { name: 'Universal Robina Corporation', market: 'PSE', currency: 'PHP', aliases: ['urc'] },
+
+  // US
+  AAPL: { name: 'Apple Inc.', market: 'US', currency: 'USD', aliases: ['apple'] },
+  MSFT: { name: 'Microsoft Corporation', market: 'US', currency: 'USD', aliases: ['microsoft'] },
+  NVDA: { name: 'NVIDIA Corporation', market: 'US', currency: 'USD', aliases: ['nvidia'] },
+  AMZN: { name: 'Amazon.com, Inc.', market: 'US', currency: 'USD', aliases: ['amazon'] },
+  GOOGL: { name: 'Alphabet Inc.', market: 'US', currency: 'USD', aliases: ['google', 'alphabet'] },
+  META: { name: 'Meta Platforms, Inc.', market: 'US', currency: 'USD', aliases: ['facebook', 'meta'] },
+  TSLA: { name: 'Tesla, Inc.', market: 'US', currency: 'USD', aliases: ['tesla'] },
+  VOO: { name: 'Vanguard S&P 500 ETF', market: 'US', currency: 'USD', aliases: ['s&p 500 etf'] },
+  QQQ: { name: 'Invesco QQQ Trust', market: 'US', currency: 'USD', aliases: ['nasdaq 100'] },
+  SPY: { name: 'SPDR S&P 500 ETF Trust', market: 'US', currency: 'USD', aliases: ['spy'] },
+  SCHD: { name: 'Schwab U.S. Dividend Equity ETF', market: 'US', currency: 'USD', aliases: ['dividend etf'] },
+  COST: { name: 'Costco Wholesale Corporation', market: 'US', currency: 'USD', aliases: ['costco'] },
+  NFLX: { name: 'Netflix, Inc.', market: 'US', currency: 'USD', aliases: ['netflix'] },
+  AMD: { name: 'Advanced Micro Devices, Inc.', market: 'US', currency: 'USD', aliases: ['amd'] },
+  PLTR: { name: 'Palantir Technologies Inc.', market: 'US', currency: 'USD', aliases: ['palantir'] }
+};
+
+
+// ─── PERSISTENCE ───
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) data = { ...data, ...JSON.parse(s) };
+  } catch(e) {}
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  document.getElementById('last-sync').textContent = 'Saved ' + new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+}
+function getApiKey() { return localStorage.getItem(API_KEY_STORAGE) || ''; }
+function saveApiKey() {
+  const v = document.getElementById('api-key-input').value.trim();
+  if (!v) { toast('Enter a valid key', true); return; }
+  localStorage.setItem(API_KEY_STORAGE, v);
+  document.getElementById('api-key-status').innerHTML = '<span style="color:var(--green)">✓ Key saved</span>';
+  document.getElementById('api-key-banner').style.display = 'none';
+  toast('API key saved!');
+}
+function clearApiKey() {
+  localStorage.removeItem(API_KEY_STORAGE);
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('api-key-status').innerHTML = '<span style="color:var(--text3)">Key cleared</span>';
+  checkApiKeyBanner();
+}
+
+// ─── NAVIGATION ───
+const titles = { dashboard:'Dashboard', pse:'PSE Stocks', us:'GoTrade US Stocks', mp2:'Pag-IBIG MP2', savings:'Savings', debts:'Debts & Liabilities', settings:'Settings & API' };
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => { if (b.textContent.toLowerCase().includes(id.replace('-',' ').split(' ')[0])) b.classList.add('active'); });
+  // Fix nav active for special cases
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if (b.getAttribute('onclick') === `showSection('${id}')`) b.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = titles[id] || id;
+  renderAll();
+}
+
+// ─── FORMATTERS ───
+function fmt(n, currency='₱') {
+  if (isNaN(n) || n === null) return currency + '0';
+  const abs = Math.abs(n);
+  let s;
+  if (abs >= 1000000) s = (abs/1000000).toFixed(2) + 'M';
+  else if (abs >= 1000) s = (abs/1000).toFixed(1) + 'K';
+  else s = abs.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return (n < 0 ? '-' : '') + currency + s;
+}
+function fmtFull(n, currency='₱') {
+  if (isNaN(n)) return currency + '0';
+  return (n<0?'-':'') + currency + Math.abs(n).toLocaleString('en-PH', {minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ─── TOAST ───
+function toast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + (isErr?'err':'ok');
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ─── ACTIVITY LOG ───
+function logActivity(icon, text) {
+  if (!data.activity) data.activity = [];
+  data.activity.unshift({ ts: new Date().toISOString(), icon, text });
+  if (data.activity.length > 30) data.activity.pop();
+}
+
+// ─── RENDER ALL ───
+function renderAll() { renderMetrics(); renderPSE(); renderUS(); renderMP2(); renderSavings(); renderTxns(); renderDebts(); renderPayments(); renderDash(); }
+
+function renderMetrics() {
+  const pseVal = data.pse.reduce((s,h) => s + h.shares*(h.curPrice||h.avgCost), 0);
+  const usVal = data.us.reduce((s,h) => s + h.shares*(h.curPrice||h.avgCost)*usdphp, 0);
+  const mp2Val = data.mp2.filter(e=>e.type==='contribution').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const mp2Div = data.mp2.filter(e=>e.type==='dividend').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const invest = pseVal + usVal + mp2Val + mp2Div;
+  const sav = data.savings.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+  let debt = 0;
+  data.debts.forEach((d,i) => {
+    const paid = data.payments.filter(p=>p.debtId===i).reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    debt += Math.max(0, parseFloat(d.total||0) - paid);
+  });
+  const assets = invest + sav;
+  const net = assets - debt;
+  document.getElementById('m-net').textContent = fmt(net);
+  document.getElementById('m-net').className = 'value ' + (net>=0?'gold':'neg');
+  document.getElementById('m-assets').textContent = fmt(assets);
+  document.getElementById('m-invest').textContent = fmt(invest);
+  document.getElementById('m-savings').textContent = fmt(sav);
+  document.getElementById('m-debt').textContent = fmt(debt);
+}
+
+function renderPSE() {
+  const tb = document.getElementById('pse-body');
+  if (!data.pse.length) { tb.innerHTML = `<tr><td colspan="7"><div class="empty"><i class="fa-solid fa-chart-line"></i>No PSE holdings yet. Add one or use the AI bar.</div></td></tr>`; return; }
+  tb.innerHTML = data.pse.map((h,i) => {
+    const cur = parseFloat(h.curPrice||h.avgCost), cost = parseFloat(h.avgCost), sh = parseFloat(h.shares);
+    const val = sh*cur, pl = val - sh*cost, plPct = cost>0?((pl/(sh*cost))*100).toFixed(2):0;
+    const cls = pl>=0?'pos':'neg', sign = pl>=0?'+':'';
+    return `<tr><td><div class="ticker">${h.ticker}</div><div class="co-name">${h.name||''}</div></td>
+      <td>${parseFloat(h.shares).toLocaleString()}</td>
+      <td>₱${parseFloat(h.avgCost).toFixed(2)}</td>
+      <td>₱${cur.toFixed(2)} <button class="edit-btn" onclick="editPrice('pse',${i})" title="Update price"><i class="fa-solid fa-pen"></i></button></td>
+      <td>${fmtFull(val)}</td>
+      <td class="${cls}">${sign}${fmtFull(pl)}<br><span style="font-size:11px;">${sign}${plPct}%</span></td>
+      <td><button class="del-btn" onclick="del('pse',${i})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  }).join('');
+}
+
+function renderUS() {
+  const tb = document.getElementById('us-body');
+  document.getElementById('usd-rate-note').textContent = `USD/PHP: ₱${usdphp.toFixed(2)}`;
+  if (!data.us.length) { tb.innerHTML = `<tr><td colspan="7"><div class="empty"><i class="fa-solid fa-building-columns"></i>No US holdings yet.</div></td></tr>`; return; }
+  tb.innerHTML = data.us.map((h,i) => {
+    const cur = parseFloat(h.curPrice||h.avgCost), cost = parseFloat(h.avgCost), sh = parseFloat(h.shares);
+    const valUSD = sh*cur, costUSD = sh*cost;
+    const valPHP = valUSD*usdphp, pl = (valUSD-costUSD)*usdphp;
+    const plPct = costUSD>0?(((valUSD-costUSD)/costUSD)*100).toFixed(2):0;
+    const cls = pl>=0?'pos':'neg', sign = pl>=0?'+':'';
+    return `<tr><td><div class="ticker">${h.ticker}</div><div class="co-name">${h.name||''}</div></td>
+      <td>${parseFloat(h.shares)}</td>
+      <td>$${parseFloat(h.avgCost).toFixed(2)}</td>
+      <td>$${cur.toFixed(2)} <button class="edit-btn" onclick="editPrice('us',${i})" title="Update price"><i class="fa-solid fa-pen"></i></button></td>
+      <td>${fmtFull(valPHP)}</td>
+      <td class="${cls}">${sign}${fmtFull(pl)}<br><span style="font-size:11px;">${sign}${plPct}%</span></td>
+      <td><button class="del-btn" onclick="del('us',${i})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  }).join('');
+}
+
+function renderMP2() {
+  const tb = document.getElementById('mp2-body');
+  if (!data.mp2.length) { tb.innerHTML = `<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-house"></i>No MP2 entries yet.</div></td></tr>`; }
+  else tb.innerHTML = [...data.mp2].reverse().map((e,ri) => {
+    const i = data.mp2.length-1-ri;
+    return `<tr><td>${e.date}</td>
+      <td><span class="badge ${e.type==='contribution'?'b-blue':'b-green'}">${e.type}</span></td>
+      <td>${fmtFull(parseFloat(e.amount))}</td>
+      <td style="color:var(--text3);">${e.notes||'—'}</td>
+      <td><button class="del-btn" onclick="del('mp2',${i})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  }).join('');
+  const contrib = data.mp2.filter(e=>e.type==='contribution').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const div = data.mp2.filter(e=>e.type==='dividend').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  document.getElementById('mp2-contrib').textContent = fmtFull(contrib);
+  document.getElementById('mp2-div').textContent = fmtFull(div);
+  document.getElementById('mp2-bal').textContent = fmtFull(contrib+div);
+}
+
+function renderSavings() {
+  const tb = document.getElementById('savings-body');
+  const typeColors = {salary:'b-blue',emergency:'b-amber','high yield':'b-green',general:'b-purple'};
+  if (!data.savings.length) { tb.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="fa-solid fa-wallet"></i>No savings accounts yet.</div></td></tr>`; }
+  else tb.innerHTML = data.savings.map((s,i) => `<tr>
+    <td><div style="font-weight:500;color:var(--text)">${s.name}</div></td>
+    <td>${s.bank}</td>
+    <td><span class="badge ${typeColors[s.type]||'b-purple'}">${s.type}</span></td>
+    <td style="font-weight:600;color:var(--text)">${fmtFull(parseFloat(s.balance||0))}</td>
+    <td style="color:var(--text3);font-size:12px;">${s.updated||'—'}</td>
+    <td>
+      <button class="edit-btn" onclick="quickEditBalance(${i})" title="Update balance"><i class="fa-solid fa-pen"></i></button>
+      <button class="del-btn" onclick="del('savings',${i})"><i class="fa-solid fa-xmark"></i></button>
+    </td></tr>`).join('');
+}
+
+function renderTxns() {
+  const tb = document.getElementById('txn-body');
+  const typeColors = {deposit:'b-green',withdrawal:'b-amber',interest:'b-teal',transfer:'b-blue'};
+  const recent = [...(data.txns||[])].reverse().slice(0,25);
+  if (!recent.length) { tb.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="fa-solid fa-clock-rotate-left"></i>No transactions yet.</div></td></tr>`; return; }
+  tb.innerHTML = recent.map((t,ri) => {
+    const i = data.txns.length-1-ri;
+    const pos = t.type==='deposit'||t.type==='interest';
+    return `<tr><td>${t.date}</td><td>${t.account}</td>
+      <td><span class="badge ${typeColors[t.type]||'b-purple'}">${t.type}</span></td>
+      <td class="${pos?'pos':'neg'}">${pos?'+':'-'}${fmtFull(Math.abs(t.amount))}</td>
+      <td style="color:var(--text3);">${t.note||'—'}</td>
+      <td><button class="del-btn" onclick="del('txns',${i})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  }).join('');
+}
+
+function renderDebts() {
+  const el = document.getElementById('debt-list');
+  if (!data.debts.length) { el.innerHTML = `<div class="empty"><i class="fa-solid fa-credit-card"></i>No debts logged — great!</div>`; return; }
+  const typeColors = {personal:'b-amber',credit_card:'b-red',loan:'b-purple',family:'b-blue'};
+  el.innerHTML = data.debts.map((d,i) => {
+    const paid = data.payments.filter(p=>p.debtId===i).reduce((s,p)=>s+parseFloat(p.amount||0),0);
+    const remaining = Math.max(0, parseFloat(d.total||0) - paid);
+    const pct = parseFloat(d.total)>0 ? Math.min(100,(paid/parseFloat(d.total))*100) : 0;
+    return `<div class="debt-item">
+      <div class="debt-row">
+        <div><div class="debt-name">${d.name} <span class="badge ${typeColors[d.type]||'b-amber'}">${d.type.replace('_',' ')}</span></div>
+          <div class="debt-meta">${d.dueDate?'Due '+d.dueDate:''}${d.notes?' · '+d.notes:''}</div></div>
+        <div class="debt-amount">
+          <div class="debt-remaining">${fmtFull(remaining)}</div>
+          <div class="debt-total">of ${fmtFull(parseFloat(d.total))} total</div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="debt-progress-label">
+        <span>Paid ${fmtFull(paid)} (${pct.toFixed(0)}%)</span>
+        <button class="del-btn" onclick="del('debts',${i})" style="font-size:11px;"><i class="fa-solid fa-xmark"></i> Remove</button>
+      </div></div>`;
+  }).join('');
+}
+
+function renderPayments() {
+  const tb = document.getElementById('payment-body');
+  if (!data.payments.length) { tb.innerHTML = `<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-receipt"></i>No payments logged.</div></td></tr>`; return; }
+  tb.innerHTML = [...data.payments].reverse().map((p,ri) => {
+    const i = data.payments.length-1-ri;
+    const d = data.debts[p.debtId];
+    return `<tr><td>${p.date}</td><td>${d?d.name:'Unknown'}</td>
+      <td class="pos">-${fmtFull(parseFloat(p.amount))}</td>
+      <td style="color:var(--text3);">${p.note||'—'}</td>
+      <td><button class="del-btn" onclick="del('payments',${i})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  }).join('');
+}
+
+function renderDash() {
+  // Investment breakdown
+  const el = document.getElementById('dash-invest-list');
+  const pseVal = data.pse.reduce((s,h)=>s+h.shares*(h.curPrice||h.avgCost),0);
+  const usVal = data.us.reduce((s,h)=>s+h.shares*(h.curPrice||h.avgCost)*usdphp,0);
+  const mp2Val = data.mp2.reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const savVal = data.savings.reduce((s,a)=>s+parseFloat(a.balance||0),0);
+  const rows = [
+    {label:'PSE Stocks', val:pseVal, color:'var(--green)', icon:'fa-chart-line'},
+    {label:'US Stocks (GoTrade)', val:usVal, color:'var(--blue)', icon:'fa-building-columns'},
+    {label:'Pag-IBIG MP2', val:mp2Val, color:'var(--amber)', icon:'fa-house'},
+    {label:'Savings', val:savVal, color:'var(--teal)', icon:'fa-wallet'},
+  ];
+  el.innerHTML = rows.map(r => `<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);">
+    <i class="fa-solid ${r.icon}" style="color:${r.color};width:16px;font-size:13px;"></i>
+    <div style="flex:1;font-size:13px;color:var(--text2);">${r.label}</div>
+    <div style="font-weight:500;color:var(--text);">${fmt(r.val)}</div>
+  </div>`).join('') + '<div style="padding:14px 20px;display:flex;justify-content:space-between;"><span style="font-size:12px;color:var(--text3);">Total</span><span style="font-weight:600;color:var(--accent);">' + fmt(pseVal+usVal+mp2Val+savVal) + '</span></div>';
+
+  // Activity
+  const act = document.getElementById('dash-activity');
+  if (!data.activity || !data.activity.length) {
+    act.innerHTML = `<div class="empty"><i class="fa-solid fa-list"></i>Activity will appear here after you log entries.</div>`;
+  } else {
+    act.innerHTML = data.activity.slice(0,8).map(a => {
+      const dt = new Date(a.ts);
+      const timeStr = dt.toLocaleDateString('en-PH',{month:'short',day:'numeric'}) + ' ' + dt.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);">
+        <span style="font-size:16px;flex-shrink:0;">${a.icon}</span>
+        <div style="flex:1;"><div style="font-size:13px;color:var(--text2);">${a.text}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${timeStr}</div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── DELETE ───
+function del(type, idx) {
+  if (!confirm('Remove this entry?')) return;
+  data[type].splice(idx, 1);
+  save(); renderAll();
+  toast('Entry removed');
+}
+
+// ─── EDIT PRICE ───
+function editPrice(type, idx) {
+  const h = data[type][idx];
+  const cur = h.curPrice || h.avgCost;
+  const prefix = type==='us' ? '$' : '₱';
+  const v = prompt(`Update current price for ${h.ticker} (${prefix}):`, cur);
+  if (v !== null && !isNaN(parseFloat(v))) {
+    data[type][idx].curPrice = parseFloat(v);
+    save(); renderAll();
+    toast(`${h.ticker} price updated to ${prefix}${parseFloat(v).toFixed(2)}`);
+  }
+}
+
+function quickEditBalance(idx) {
+  const s = data.savings[idx];
+  const v = prompt(`Update balance for ${s.name} (${s.bank}):`, s.balance);
+  if (v !== null && !isNaN(parseFloat(v))) {
+    data.savings[idx].balance = parseFloat(v);
+    data.savings[idx].updated = new Date().toLocaleDateString('en-PH');
+    save(); renderAll();
+    toast(`${s.name} balance updated`);
+  }
+}
+
+// ─── RATES ───
+async function fetchRates(silent = false) {
+  const btn = document.querySelector('.refresh-btn');
+  if (btn && !silent) btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Fetching…';
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?from=USD&to=PHP', { cache: 'no-store' });
+    const d = await r.json();
+    if (d.rates && d.rates.PHP) {
+      usdphp = d.rates.PHP;
+      document.getElementById('usd-rate-pill').innerHTML = `USD/PHP: <b>₱${usdphp.toFixed(2)}</b>`;
+      document.getElementById('usd-rate-note').textContent = `Live USD/PHP rate: ₱${usdphp.toFixed(2)}`;
+      document.getElementById('last-sync').textContent = 'Updated ' + new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+      if (!silent) toast(`Rate updated: ₱${usdphp.toFixed(2)}`);
+    }
+  } catch(e) {
+    if (!silent) toast('Could not fetch rate — using last saved value', true);
+  }
+  if (btn && !silent) btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Refresh Rates';
+  renderAll();
+}
+
+// ─── MODAL ───
+function openModal(type) {
+  const todayStr = today();
+  let html = '';
+  if (type === 'pse') {
+    html = modal('Add PSE Holding', `
+      <div class="form-row two">
+        <div><label>TICKER *</label><input id="m-ticker" placeholder="BPI" style="text-transform:uppercase"></div>
+        <div><label>COMPANY NAME</label><input id="m-name" placeholder="Optional"></div>
+      </div>
+      <div class="form-row two">
+        <div><label>SHARES *</label><input id="m-shares" type="number" placeholder="100"></div>
+        <div><label>AVG COST / SHARE (₱) *</label><input id="m-cost" type="number" step="0.01" placeholder="98.50"></div>
+      </div>
+      <div class="form-row"><label>CURRENT PRICE (₱) — optional, defaults to avg cost</label><input id="m-cur" type="number" step="0.01" placeholder="102.00"></div>
+    `, "savePSE()");
+  } else if (type === 'us') {
+    html = modal('Add US Stock (GoTrade)', `
+      <div class="form-row two">
+        <div><label>TICKER *</label><input id="m-ticker" placeholder="AAPL" style="text-transform:uppercase"></div>
+        <div><label>COMPANY NAME</label><input id="m-name" placeholder="Optional"></div>
+      </div>
+      <div class="form-row two">
+        <div><label>SHARES *</label><input id="m-shares" type="number" step="0.0001" placeholder="0.5"></div>
+        <div><label>AVG COST / SHARE (USD) *</label><input id="m-cost" type="number" step="0.01" placeholder="193.00"></div>
+      </div>
+      <div class="form-row"><label>CURRENT PRICE (USD) — optional</label><input id="m-cur" type="number" step="0.01" placeholder="195.00"></div>
+    `, "saveUS()");
+  } else if (type === 'mp2') {
+    html = modal('Log MP2 Entry', `
+      <div class="form-row two">
+        <div><label>DATE *</label><input id="m-date" type="date" value="${todayStr}"></div>
+        <div><label>TYPE</label><select id="m-type"><option value="contribution">Contribution</option><option value="dividend">Dividend</option></select></div>
+      </div>
+      <div class="form-row"><label>AMOUNT (₱) *</label><input id="m-amount" type="number" placeholder="1000"></div>
+      <div class="form-row"><label>NOTES</label><input id="m-notes" placeholder="e.g. Monthly contribution"></div>
+    `, "saveMP2()");
+  } else if (type === 'savings') {
+    html = modal('Add Savings Account', `
+      <div class="form-row"><label>ACCOUNT NAME *</label><input id="m-name" placeholder="Emergency Fund"></div>
+      <div class="form-row two">
+        <div><label>BANK / CHANNEL *</label><input id="m-bank" placeholder="Metrobank, Maribank…"></div>
+        <div><label>TYPE</label><select id="m-type"><option>salary</option><option>emergency</option><option>high yield</option><option>general</option></select></div>
+      </div>
+      <div class="form-row"><label>CURRENT BALANCE (₱) *</label><input id="m-balance" type="number" placeholder="50000"></div>
+    `, "saveSavings()");
+  } else if (type === 'txn') {
+    const accts = data.savings.map(s=>`<option>${s.name}</option>`).join('');
+    html = modal('Log Transaction', `
+      <div class="form-row two">
+        <div><label>DATE *</label><input id="m-date" type="date" value="${todayStr}"></div>
+        <div><label>TYPE</label><select id="m-type"><option value="deposit">Deposit</option><option value="withdrawal">Withdrawal</option><option value="interest">Interest</option><option value="transfer">Transfer</option></select></div>
+      </div>
+      <div class="form-row"><label>ACCOUNT *</label><select id="m-account">${accts||'<option>No accounts — add one first</option>'}</select></div>
+      <div class="form-row"><label>AMOUNT (₱) *</label><input id="m-amount" type="number" placeholder="5000"></div>
+      <div class="form-row"><label>NOTE</label><input id="m-note" placeholder="Salary deposit"></div>
+    `, "saveTxn()");
+  } else if (type === 'debt') {
+    html = modal('Add Debt / Liability', `
+      <div class="form-row"><label>NAME *</label><input id="m-name" placeholder="BDO Credit Card"></div>
+      <div class="form-row two">
+        <div><label>TYPE</label><select id="m-type"><option value="credit_card">Credit Card</option><option value="personal">Personal</option><option value="loan">Bank Loan</option><option value="family">Family/Friends</option></select></div>
+        <div><label>DUE DATE</label><input id="m-due" type="date"></div>
+      </div>
+      <div class="form-row"><label>TOTAL AMOUNT OWED (₱) *</label><input id="m-total" type="number" placeholder="25000"></div>
+      <div class="form-row"><label>NOTES</label><input id="m-notes" placeholder="2% monthly interest"></div>
+    `, "saveDebt()");
+  } else if (type === 'payment') {
+    const debts = data.debts.map((d,i)=>`<option value="${i}">${d.name}</option>`).join('');
+    if (!data.debts.length) { toast('Add a debt first', true); return; }
+    html = modal('Log Payment', `
+      <div class="form-row two">
+        <div><label>DATE *</label><input id="m-date" type="date" value="${todayStr}"></div>
+        <div><label>DEBT *</label><select id="m-debt">${debts}</select></div>
+      </div>
+      <div class="form-row"><label>AMOUNT PAID (₱) *</label><input id="m-amount" type="number" placeholder="5000"></div>
+      <div class="form-row"><label>NOTE</label><input id="m-note" placeholder="Minimum payment"></div>
+    `, "savePayment()");
+  }
+  document.getElementById('modal-root').innerHTML = html;
+  setTimeout(() => {
+    document.querySelector('.modal input')?.focus();
+    attachModalAssist(type);
+  }, 50);
+}
+
+function modal(title, body, saveFunc) {
+  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3>${title}</h3>
+      ${body}
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="${saveFunc}">Save</button>
+      </div>
+    </div></div>`;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+
+// ─── SAVE HANDLERS ───
+function savePSE() {
+  const t = document.getElementById('m-ticker').value.trim().toUpperCase();
+  const n = document.getElementById('m-name').value.trim();
+  const s = parseFloat(document.getElementById('m-shares').value);
+  const c = parseFloat(document.getElementById('m-cost').value);
+  const cur = document.getElementById('m-cur').value;
+  if (!t || isNaN(s) || isNaN(c)) { toast('Fill ticker, shares & avg cost', true); return; }
+  data.pse.push({ ticker:t, name:n, shares:s, avgCost:c, curPrice: cur?parseFloat(cur):c });
+  logActivity('📈', `Added ${s} shares of ${t} @ ₱${c}`);
+  save(); closeModal(); renderAll(); toast(`${t} added to PSE`); showSection('pse');
+}
+function saveUS() {
+  const t = document.getElementById('m-ticker').value.trim().toUpperCase();
+  const n = document.getElementById('m-name').value.trim();
+  const s = parseFloat(document.getElementById('m-shares').value);
+  const c = parseFloat(document.getElementById('m-cost').value);
+  const cur = document.getElementById('m-cur').value;
+  if (!t || isNaN(s) || isNaN(c)) { toast('Fill ticker, shares & avg cost', true); return; }
+  data.us.push({ ticker:t, name:n, shares:s, avgCost:c, curPrice: cur?parseFloat(cur):c });
+  logActivity('🇺🇸', `Added ${s} shares of ${t} @ $${c}`);
+  save(); closeModal(); renderAll(); toast(`${t} added to GoTrade`); showSection('us');
+}
+function saveMP2() {
+  const d = document.getElementById('m-date').value;
+  const t = document.getElementById('m-type').value;
+  const a = parseFloat(document.getElementById('m-amount').value);
+  const n = document.getElementById('m-notes').value;
+  if (!d || isNaN(a)) { toast('Fill date & amount', true); return; }
+  data.mp2.push({ date:d, type:t, amount:a, notes:n });
+  logActivity('🏠', `MP2 ${t}: ₱${a.toLocaleString()}`);
+  save(); closeModal(); renderAll(); toast('MP2 entry saved'); showSection('mp2');
+}
+function saveSavings() {
+  const n = document.getElementById('m-name').value.trim();
+  const b = document.getElementById('m-bank').value.trim();
+  const t = document.getElementById('m-type').value;
+  const bal = parseFloat(document.getElementById('m-balance').value);
+  if (!n || !b || isNaN(bal)) { toast('Fill all required fields', true); return; }
+  data.savings.push({ name:n, bank:b, type:t, balance:bal, updated: new Date().toLocaleDateString('en-PH') });
+  logActivity('💰', `Added ${n} (${b}): ₱${bal.toLocaleString()}`);
+  save(); closeModal(); renderAll(); toast(`${n} added`); showSection('savings');
+}
+function saveTxn() {
+  const d = document.getElementById('m-date').value;
+  const ac = document.getElementById('m-account').value;
+  const t = document.getElementById('m-type').value;
+  const a = parseFloat(document.getElementById('m-amount').value);
+  const n = document.getElementById('m-note').value;
+  if (!d || isNaN(a)) { toast('Fill date & amount', true); return; }
+  if (!data.txns) data.txns = [];
+  data.txns.push({ date:d, account:ac, type:t, amount:a, note:n });
+  const si = data.savings.findIndex(s=>s.name===ac);
+  if (si>=0) {
+    const bal = parseFloat(data.savings[si].balance)||0;
+    if (t==='deposit'||t==='interest') data.savings[si].balance = bal + a;
+    else if (t==='withdrawal') data.savings[si].balance = Math.max(0, bal - a);
+    data.savings[si].updated = new Date().toLocaleDateString('en-PH');
+  }
+  logActivity('💳', `${t} ₱${a.toLocaleString()} → ${ac}`);
+  save(); closeModal(); renderAll(); toast('Transaction logged');
+}
+function saveDebt() {
+  const n = document.getElementById('m-name').value.trim();
+  const t = document.getElementById('m-type').value;
+  const tot = parseFloat(document.getElementById('m-total').value);
+  const due = document.getElementById('m-due').value;
+  const notes = document.getElementById('m-notes').value;
+  if (!n || isNaN(tot)) { toast('Fill name & amount', true); return; }
+  data.debts.push({ name:n, type:t, total:tot, dueDate:due, notes });
+  logActivity('💳', `Added debt: ${n} ₱${tot.toLocaleString()}`);
+  save(); closeModal(); renderAll(); toast(`${n} added`); showSection('debts');
+}
+function savePayment() {
+  const d = document.getElementById('m-date').value;
+  const di = parseInt(document.getElementById('m-debt').value);
+  const a = parseFloat(document.getElementById('m-amount').value);
+  const n = document.getElementById('m-note').value;
+  if (!d || isNaN(a)) { toast('Fill date & amount', true); return; }
+  data.payments.push({ date:d, debtId:di, amount:a, note:n });
+  const debt = data.debts[di];
+  logActivity('✅', `Paid ₱${a.toLocaleString()} → ${debt?.name||'debt'}`);
+  save(); closeModal(); renderAll(); toast('Payment logged'); showSection('debts');
+}
+
+// ─── AI COMMAND BAR ───
+const SMART_TICKERS = Object.fromEntries(
+  Object.entries(LOCAL_TICKERS).map(([ticker, meta]) => [ticker.toUpperCase(), { ticker: ticker.toUpperCase(), ...meta }])
+);
+
+function fillPrompt(el) {
+  document.getElementById('ai-input').value = el.textContent;
+  document.getElementById('ai-input').focus();
+}
+
+function normalizeText(v) {
+  return (v || '').toString().trim();
+}
+
+function cleanNum(v) {
+  if (v === null || v === undefined) return NaN;
+  const n = parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(n) ? n : NaN;
+}
+
+function matchTickerMeta(query) {
+  const q = normalizeText(query).toUpperCase();
+  if (!q) return null;
+  if (SMART_TICKERS[q]) return SMART_TICKERS[q];
+  const qLow = q.toLowerCase();
+  for (const meta of Object.values(SMART_TICKERS)) {
+    if (meta.name.toLowerCase() === qLow) return meta;
+    if ((meta.aliases || []).some(a => a.toLowerCase() === qLow || qLow.includes(a.toLowerCase()) || a.toLowerCase().includes(qLow))) return meta;
+  }
+  return null;
+}
+
+function inferTickerFromText(cmd) {
+  const raw = normalizeText(cmd);
+  if (!raw) return null;
+
+  const words = raw.replace(/[$₱,()]/g, ' ').split(/\s+/).filter(Boolean);
+  for (const token of words) {
+    const upper = token.toUpperCase().replace(/[^A-Z.]/g, '');
+    if (upper.length >= 1 && upper.length <= 6 && SMART_TICKERS[upper]) return SMART_TICKERS[upper];
+  }
+
+  const lower = raw.toLowerCase();
+  for (const meta of Object.values(SMART_TICKERS)) {
+    if (lower.includes(meta.name.toLowerCase())) return meta;
+    if ((meta.aliases || []).some(a => lower.includes(a.toLowerCase()))) return meta;
+  }
+  return null;
+}
+
+function guessMarketFromCommand(cmd, meta) {
+  const lower = cmd.toLowerCase();
+  if (meta?.market) return meta.market;
+  if (/\b(gotrade|us|usd|dollar)\b/.test(lower) || /\$/.test(lower)) return 'US';
+  return 'PSE';
+}
+
+function marketCurrency(market) {
+  return market === 'US' ? 'USD' : 'PHP';
+}
+
+function suggestTickerList(prefix = '', market = null) {
+  const q = prefix.trim().toUpperCase();
+  const list = [];
+  const seen = new Set();
+  const sources = [
+    ...Object.values(SMART_TICKERS),
+    ...data.pse.map(h => ({ ticker: h.ticker.toUpperCase(), name: h.name || '', market: 'PSE', currency: 'PHP' })),
+    ...data.us.map(h => ({ ticker: h.ticker.toUpperCase(), name: h.name || '', market: 'US', currency: 'USD' }))
+  ];
+
+  for (const item of sources) {
+    if (market && item.market && item.market !== market) continue;
+    if (q && !item.ticker.startsWith(q) && !(item.name || '').toUpperCase().includes(q)) continue;
+    if (seen.has(item.ticker)) continue;
+    seen.add(item.ticker);
+    list.push(item);
+    if (list.length >= 14) break;
+  }
+  return list;
+}
+
+function renderTickerSuggestions(inputEl, market = null) {
+  const listEl = document.getElementById('ticker-datalist');
+  if (!listEl || !inputEl) return;
+  listEl.innerHTML = suggestTickerList(inputEl.value, market).map(item =>
+    `<option value="${item.ticker}" label="${item.ticker} — ${item.name || ''}"></option>`
+  ).join('');
+}
+
+function attachModalAssist(type) {
+  const ticker = document.getElementById('m-ticker');
+  const name = document.getElementById('m-name');
+  const cur = document.getElementById('m-cur');
+  if (!ticker) return;
+
+  const market = type === 'us' ? 'US' : 'PSE';
+  ticker.setAttribute('list', 'ticker-datalist');
+  renderTickerSuggestions(ticker, market);
+
+  const fillMeta = () => {
+    const meta = matchTickerMeta(ticker.value) || inferTickerFromText(ticker.value);
+    if (!meta) {
+      renderTickerSuggestions(ticker, market);
+      return;
+    }
+    if (name && !name.value.trim()) name.value = meta.name || '';
+    if (cur && !cur.value.trim()) cur.placeholder = meta.market === 'US' ? 'e.g. 193.00' : 'e.g. 98.00';
+    ticker.value = meta.ticker;
+    renderTickerSuggestions(ticker, meta.market);
+  };
+
+  ticker.addEventListener('input', () => renderTickerSuggestions(ticker, market));
+  ticker.addEventListener('change', fillMeta);
+  ticker.addEventListener('blur', fillMeta);
+  fillMeta();
+}
+
+document.getElementById('ai-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
+});
+
+function normalizeCommand(cmd) {
+  return cmd.toLowerCase().replace(/\s+/g, ' ').replace(/[“”]/g, '"').trim();
+}
+
+function parseStockCommand(cmd) {
+  const lower = normalizeCommand(cmd);
+  const meta = inferTickerFromText(cmd);
+  const market = guessMarketFromCommand(cmd, meta);
+  const isUS = market === 'US';
+
+  let m = lower.match(/(?:bought|buy|added|add|put|logged?|invested|purchased)\s+([\d.,]+)\s*(?:shares?|sh)?\s*(?:of\s+)?(?:in\s+)?(?:on\s+)?([a-z0-9.\- ]+?)(?:\s+(?:at|@)\s*([$₱]?\s*[\d.,]+(?:\.\d+)?))?(?:\s+(?:on|via)\s+(gotrade|us|pse))?$/i);
+  if (m) {
+    const shares = cleanNum(m[1]);
+    let tickerText = (m[2] || '').trim();
+    const price = cleanNum(m[3]);
+    const m2 = matchTickerMeta(tickerText) || inferTickerFromText(tickerText) || meta;
+    if (m2) tickerText = m2.ticker;
+    if (!Number.isFinite(shares) || !tickerText) return null;
+    return [{
+      type: (m[4] && /us|gotrade/i.test(m[4])) || isUS || (m2?.market === 'US') ? 'add_us' : 'add_pse',
+      ticker: tickerText.toUpperCase(),
+      name: m2?.name || '',
+      shares,
+      avgCost: Number.isFinite(price) ? price : undefined,
+      curPrice: Number.isFinite(price) ? price : undefined
+    }];
+  }
+
+  m = lower.match(/^([a-z0-9.\- ]+?)\s+([\d.,]+)\s*(?:shares?|sh)\s*(?:at|@)\s*([$₱]?\s*[\d.,]+(?:\.\d+)?)$/i);
+  if (m) {
+    const t = matchTickerMeta(m[1]) || inferTickerFromText(m[1]) || meta;
+    if (!t) return null;
+    const shares = cleanNum(m[2]);
+    const price = cleanNum(m[3]);
+    return [{
+      type: t.market === 'US' ? 'add_us' : 'add_pse',
+      ticker: t.ticker,
+      name: t.name || '',
+      shares,
+      avgCost: price,
+      curPrice: price
+    }];
+  }
+
+  m = lower.match(/(?:update|set|change|current)\s+(?:price\s+)?(?:for\s+)?([a-z0-9.\- ]+?)\s+(?:to|at)\s*([$₱]?\s*[\d.,]+(?:\.\d+)?)/i);
+  if (m) {
+    const t = matchTickerMeta(m[1]) || inferTickerFromText(m[1]) || meta;
+    const price = cleanNum(m[2]);
+    if (!t || !Number.isFinite(price)) return null;
+    return [{ type: t.market === 'US' ? 'update_price_us' : 'update_price_pse', ticker: t.ticker, price }];
+  }
+
+  return [];
+}
+
+function parseSavingsCommand(cmd) {
+  const lower = normalizeCommand(cmd);
+
+  let m = lower.match(/^(?:deposit|deposited|add|added|save|saved)\s+([$₱]?\s*[\d.,]+(?:\.\d+)?)\s+(?:to|into|in)\s+(.+?)(?:\s+for\s+(.+))?$/i);
+  if (m) return [{
+    type: 'add_txn',
+    account: m[2].trim(),
+    txnType: 'deposit',
+    amount: cleanNum(m[1]),
+    note: m[3] || ''
+  }];
+
+  m = lower.match(/^(?:withdraw|withdrew|pulled|take out|took out)\s+([$₱]?\s*[\d.,]+(?:\.\d+)?)\s+(?:from)\s+(.+?)(?:\s+for\s+(.+))?$/i);
+  if (m) return [{
+    type: 'add_txn',
+    account: m[2].trim(),
+    txnType: 'withdrawal',
+    amount: cleanNum(m[1]),
+    note: m[3] || ''
+  }];
+
+  m = lower.match(/^(?:mp2\s+)?(?:contribution|contributed|paid)\s+([$₱]?\s*[\d.,]+(?:\.\d+)?)\s*(?:today|on\s+([\d-]+))?(?:\s*(?:for|note|remarks?)\s+(.+))?$/i);
+  if (m && /mp2|pag-ibig|pagibig/i.test(lower)) return [{
+    type: 'add_mp2',
+    entryType: 'contribution',
+    amount: cleanNum(m[1]),
+    date: m[2] || today(),
+    notes: m[3] || ''
+  }];
+
+  m = lower.match(/^(?:paid|payment)\s+([$₱]?\s*[\d.,]+(?:\.\d+)?)\s+(?:to|for)\s+(.+?)(?:\s*(?:debt|bill))?(?:\s+(.+))?$/i);
+  if (m) return [{
+    type: 'add_payment',
+    debtName: m[2].trim(),
+    amount: cleanNum(m[1]),
+    date: today(),
+    note: m[3] || ''
+  }];
+
+  m = lower.match(/^(?:debt|owe|owed|loan)\s+(.+?)\s+([$₱]?\s*[\d.,]+(?:\.\d+)?)(?:\s+due\s+([\d-]+))?(?:\s+(.+))?$/i);
+  if (m) return [{
+    type: 'add_debt',
+    name: m[1].trim(),
+    total: cleanNum(m[2]),
+    dueDate: m[3] || '',
+    notes: m[4] || '',
+    debtType: /credit card/i.test(m[1]) ? 'credit_card' : 'personal'
+  }];
+
+  return [];
+}
+
+function parseCommand(cmd) {
+  const stockActs = parseStockCommand(cmd);
+  if (stockActs.length) return stockActs;
+  const savingsActs = parseSavingsCommand(cmd);
+  if (savingsActs.length) return savingsActs;
+  return [];
+}
+
+function applyParsedActions(actions) {
+  const results = [];
+  for (const act of actions) {
+    if (!act || !act.type) continue;
+    const r = applyAction(act);
+    if (r) results.push(r);
+  }
+  return results;
+}
+
+async function sendAI() {
+  const input = document.getElementById('ai-input');
+  const btn = document.getElementById('ai-btn');
+  const status = document.getElementById('ai-status');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+
+  btn.disabled = true;
+  status.textContent = '✦ Parsing…';
+  status.className = 'ai-status thinking';
+
+  try {
+    const actions = parseCommand(cmd);
+    if (!actions.length) {
+      status.textContent = 'Try: “bought 10 BPI at 98”, “deposited 5000 to Metrobank”, or “paid 3000 to BDO credit card”.';
+      status.className = 'ai-status error';
+      btn.disabled = false;
+      return;
+    }
+
+    const results = applyParsedActions(actions);
+    save();
+    renderAll();
+
+    status.textContent = '✓ ' + (results.join(' · ') || 'Logged');
+    status.className = 'ai-status success';
+    input.value = '';
+    setTimeout(() => { status.textContent = 'Smart logging — type what you did and it logs automatically'; status.className = 'ai-status'; }, 3500);
+  } catch (e) {
+    console.error(e);
+    status.textContent = '✕ ' + e.message;
+    status.className = 'ai-status error';
+  }
+
+  btn.disabled = false;
+}
+
+// ─── API KEY BANNER ───
+function checkApiKeyBanner() {
+  const banner = document.getElementById('api-key-banner');
+  if (banner) banner.style.display = 'flex';
+}
+
+// ─── EXPORT / IMPORT ───
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'peso-tracker-' + today() + '.json';
+  a.click();
+  toast('Data exported!');
+}
+function importData() { document.getElementById('import-file').click(); }
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (confirm('Replace ALL current data with imported data?')) {
+        data = imported;
+        save(); renderAll();
+        toast('Data imported!');
+      }
+    } catch(err) { toast('Invalid JSON file', true); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+function clearAllData() {
+  data = { pse:[], us:[], mp2:[], savings:[], txns:[], debts:[], payments:[], activity:[] };
+  save(); renderAll(); toast('All data cleared');
+}
+
+// ─── SETTINGS DISPLAY ───
+function initSettings() {
+  const key = getApiKey();
+  if (key) {
+    document.getElementById('api-key-input').value = key;
+    document.getElementById('api-key-status').innerHTML = '<span style="color:var(--green)">✓ API key is set</span>';
+  }
+}
+
+// ─── INIT ───
+load();
+fetchRates(true);
+renderAll();
+checkApiKeyBanner();
+initSettings();
+setInterval(() => fetchRates(true), SMART_REFRESH_MS);
+window.addEventListener('online', () => fetchRates(true));
+</script>
+</body>
+</html>
